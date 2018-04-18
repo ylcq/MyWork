@@ -163,7 +163,7 @@ void LogRTrainData::handleCategoryColumn(Utility::DataColumnView const* category
             cateMap[strVal] = rowIdxVec;
         }
         else{
-            _STL::vector<uint32_t> rowIdxVec = it->second;
+            _STL::vector<uint32_t>& rowIdxVec = it->second;
             rowIdxVec.push_back(rowIdx);
             cateMap[strVal] = rowIdxVec;
         }
