@@ -121,11 +121,22 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
             else{// normal training
                 const TRexCommonObjects::ColumnDictBase * dict = dataView->getColumn(colInd).getDict();
                 uint32_t dictSize = dict->size();
-                m_categoryNumOfEachColumn.push_back(dictSize);
-                totalCategoryCols += dictSize-1;
-                for(uint32_t i=1; i<dictSize; ++i){
+                uint32_t numDistinct = 0;
+                _STL::vector<_STL::string> sortedDict(*m_alloc);
+                for(uint32_t i=0; i<dictSize; ++i){
+                    _STL::string tmpStr;
+                    if(dict->get(i, tmpStr)){
+                        ++numDistinct;
+                        sortedDict.emplace_back(tmpStr);
+                    }
+                }
+                m_categoryNumOfEachColumn.push_back(numDistinct);
+                totalCategoryCols += numDistinct-1;
+
+                ltt::sort(sortedDict.begin(), sortedDict.end(), *m_alloc);
+                for(uint32_t i=1; i<numDistinct; ++i){
                     ltt_adp::string tmpStr;
-                    dict->get(i, tmpStr);
+                    tmpStr = sortedDict[i];
                     ltt_adp::vector<uint32_t> indexVec;
                     dict->find(tmpStr, indexVec);
                     for(uint32_t ii=0; ii<indexVec.size(); ++ii){
@@ -135,7 +146,7 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
                 }
                 ++catNum;
                 m_insPos.push_back(colIndex+catNum);
-                colIndex += dictSize - 1;
+                colIndex += numDistinct - 1;
             }// end of normal training
         }// end category column
 
