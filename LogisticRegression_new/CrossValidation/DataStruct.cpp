@@ -89,7 +89,7 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
     m_dsMatrix.denseMat.resize(nrow, continuousColNum+1);// add 1 because of intercept term
     m_dsMatrix.denseMat.col(0).setOnes(); // intercept term
 
-    uint32_t totalCategoryCols = 0;
+    uint32_t expandCategoryNum = 0;
     uint32_t cateInd = 0;
     uint32_t colIndex = 0;
     uint32_t catNum = 0;
@@ -111,7 +111,7 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
             uint32_t dictSize = 0;
             if(isCV){// for cross validation
                 handleCategoryColumn(categoryCol, nrow, tripletList, cateInd, dictSize);
-                totalCategoryCols += dictSize-1;
+                expandCategoryNum += dictSize-1;
                 m_categoryNumOfEachColumn.push_back(dictSize);
                 ++catNum;
                 m_insPos.push_back(colIndex+catNum);
@@ -119,8 +119,8 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
                 //if(dictSize > 1) m_hasCateThanOneIdx.push_back(hasCateThanOneIdx);
             }
             else{// normal training
-                const TRexCommonObjects::ColumnDictBase * dict = dataView->getColumn(colInd).getDict();
-                uint32_t dictSize = dict->size();
+                const TRexCommonObjects::ColumnDictBase* dict = dataView->getColumn(colInd).getDict();
+                uint32_t dictSize = dict->size(); //XXX: the size may be not the number of distinct values.
                 uint32_t numDistinct = 0;
                 _STL::vector<_STL::string> sortedDict(*m_alloc);
                 for(uint32_t i=0; i<dictSize; ++i){
@@ -131,10 +131,9 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
                     }
                 }
                 m_categoryNumOfEachColumn.push_back(numDistinct);
-                totalCategoryCols += numDistinct-1;
-
+                expandCategoryNum += numDistinct-1;
                 ltt::sort(sortedDict.begin(), sortedDict.end(), *m_alloc);
-                for(uint32_t i=1; i<numDistinct; ++i){
+                for(uint32_t i=1; i<numDistinct; ++i){ // start from 1, remove the first category
                     ltt_adp::string tmpStr;
                     tmpStr = sortedDict[i];
                     ltt_adp::vector<uint32_t> indexVec;
@@ -151,8 +150,8 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
         }// end category column
 
     }// end of colIndex
-    if(totalCategoryCols > 0){
-        m_dsMatrix.sparseMat.resize(nrow, totalCategoryCols);
+    if(expandCategoryNum > 0){
+        m_dsMatrix.sparseMat.resize(nrow, expandCategoryNum);
         m_dsMatrix.sparseMat.setFromTriplets(tripletList.begin(), tripletList.end());
     }
 
