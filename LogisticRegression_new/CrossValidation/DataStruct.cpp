@@ -133,7 +133,7 @@ void LogRTrainData::loadFeatureData(Utility::DataTableViewBase const* dataView,
                 m_categoryNumOfEachColumn.push_back(numDistinct);
                 expandCategoryNum += numDistinct-1;
                 ltt::sort(sortedDict.begin(), sortedDict.end(), *m_alloc);
-                for(uint32_t i=1; i<numDistinct; ++i){ // start from 1, remove the first category
+                for(uint32_t i=1; i<numDistinct; ++i){ // start from 1, remove the first value
                     ltt_adp::string tmpStr;
                     tmpStr = sortedDict[i];
                     ltt_adp::vector<uint32_t> indexVec;
